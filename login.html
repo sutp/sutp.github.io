@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>WeWork</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.css"/>
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.1/css/bootstrap.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.1/css/bootstrap.css.map" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-table/1.22.1/bootstrap-table.min.css" rel="stylesheet">
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.1/js/bootstrap.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jsencrypt/3.3.2/jsencrypt.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/select2/4.0.13/js/select2.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap-table/1.22.1/bootstrap-table.min.js"></script>
+    <!-- 引入 MQTT.js CDN -->
+    <script src="https://cdn.bootcss.com/paho-mqtt/1.1.0/paho-mqtt.min.js"></script>
+
+    <style>
+
+        body,head,h1,h2,h3,h4,h5{
+            padding: 0;
+            margin: 0;
+        }
+
+        .datetimepicker-container {
+            position: relative;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="toast_container" style="width: 50%;position: absolute;top: 0;left: 50%;z-index: 5555;"></div>
+    <div class="modal" id="modal_dialog_win" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">提示</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>
+                <img id="model_image" alt="modal image">
+                <span id="model_text">登录中...</span></p>
+            </div>
+            
+          </div>
+        </div>
+    </div>
+    <div id="login_pannel" class="login_pannel container" >
+        <div style="text-align: center;margin-top: 2rem;">
+            <h5 id="disPalyTitle" style="color: #ee130b;"></h5>
+            <H2 style="color: #0b75ee;">WeWork协作平台</H2> 
+            <h5 id="h_Version" style="color: #ee400b;"></h5>
+            <h5 style="color: #65a5ee;">欢迎登录!</h5>
+        </div>
+        <form class="row g-3 was-validated" onsubmit="return false">
+            <div class="col-md-12">
+              <label for="userName" class="form-label">账号</label>
+              <input type="text" class="form-control is-invalid" id="userName" value="" required>
+              <div class="valid-feedback">
+                已输入
+              </div>
+            </div>
+            <div class="col-md-12">
+              <label for="password" class="form-label">密码</label>
+              <input type="password" class="form-control is-invalid" id="password" value="" required>
+              <div class="valid-feedback">
+                已输入
+              </div>
+            </div>
+            <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="remember">
+                <label class="form-check-label" for="remember">记住密码</label>
+            </div>
+            <div class="col-12" style="text-align: center;">
+                <button class="btn btn-primary"  onclick="Login()">登录</button>
+            </div>
+        </form>
+    </div>
+    
+    </div>
+    <script>
+        // 定义全局变量
+
+        let molde_dialog_win = document.getElementById("modal_dialog_win");
+        molde_dialog_win.addEventListener('hidden.bs.modal', function (event) {
+            // do something...
+            console.log('已经关闭')
+            })
+
+
+        function showModelDialog(text,imgIndex){
+            let img= document.getElementById("model_image")
+            img.src=images[imgIndex==undefined?0:imgIndex]
+            document.getElementById('model_text').innerText=text
+            $(molde_dialog_win).modal("show");
+        }
+
+        function hideModelDialog(){
+            $(molde_dialog_win).modal("hide");
+        }
+
+        function showAlert(type,message) {
+                var cl ='alert-primary'
+                if(type=='success')
+                    cl ='alert-success'
+                else if(type=='warn')
+                    cl ='alert-warning'
+                else if(type=='info')
+                    cl ='alert-info'  
+                else if(type=='error')
+                    cl ='alert-danger'
+                $('#alert_message').text(message)
+                $('#alert_window').removeClass('alert-success alert-primary alert-warning alert-info alert-danger')
+                $('#alert_window').addClass(cl)
+                $('#alert_window').css('display','block');
+            }
+            
+        function hideAlert() {
+            $('#alert_window').css('display','none');
+        }
+
+
+        function showToast(message,type) {
+            var theme ='bg-primary'
+            if(type=='success')
+                theme ='bg-success'
+            else if(type=='warn')
+                theme ='bg-warning'
+            else if(type=='info')
+                theme ='bg-info'  
+            else if(type=='error')
+                theme ='bg-danger'   
+            var toastEl = document.createElement('div');
+            toastEl.classList.add('toast', 'align-items-center', 'text-white', theme, 'border-0');
+            toastEl.setAttribute('role', 'alert');
+            toastEl.setAttribute('aria-live', 'assertive');
+            toastEl.setAttribute('aria-atomic', 'true');
+            toastEl.setAttribute('delay',2000);
+            toastEl.innerHTML = '<div class="d-flex"><div class="toast-body">'+message+'</div></div>';
+        
+            var toast = new bootstrap.Toast(toastEl);
+            toastEl.addEventListener('hide.bs.toast', function () {
+                // 删除元素
+                toastEl.remove()
+            })
+            toast.show();
+        
+            $('#toast_container').append(toastEl);
+        }
+
+        function enterFullScreen() {
+            var element = document.documentElement;
+            if (element.requestFullscreen) {
+            element.requestFullscreen();
+            } else if (element.webkitRequestFullscreen) {
+            element.webkitRequestFullscreen();
+            } else if (element.mozRequestFullScreen) {
+            element.mozRequestFullScreen();
+            } else if (element.msRequestFullscreen) {
+            element.msRequestFullscreen();
+            }
+        }
+
+
+        
+
+
+        // 计算 base64 编码图片大小
+        function getBase64ImageSize(base64) {
+            const indexBase64 = base64.indexOf('base64,');
+            if (indexBase64 < 0) return -1;
+            const str = base64.substr(indexBase64 + 6);
+            // 大小单位：字节
+            return (str.length * 0.75).toFixed(2);
+        }
+
+        function compressedImage2(base64Image,quality, maxWidth,callback,index){
+
+            var maxSize = 50 * 1024; // 最大文件大小为50KB
+            var img = new Image();
+            img.src = base64Image;
+            img.onload = function () {
+                var canvas = document.createElement('canvas');
+                var ctx = canvas.getContext('2d');
+                const width = img.width > maxWidth ? maxWidth : img.width;
+                const height = img.height * (width / img.width);
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+                //var quality = 0.8;
+                let newBase64Image;
+                do {
+                    
+                    newBase64Image = canvas.toDataURL('image/jpeg', quality);
+                    quality -= 0.01;
+                } while (getBase64ImageSize(newBase64Image) > maxSize && quality > 0.1);
+                callback(newBase64Image,index)
+            }
+        }
+
+    </script>
+</body>
+</html>

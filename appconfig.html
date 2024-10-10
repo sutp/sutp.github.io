@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>WeWork</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.css"/>
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.1/css/bootstrap.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.1/css/bootstrap.css.map" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-table/1.22.1/bootstrap-table.min.css" rel="stylesheet">
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.1/js/bootstrap.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jsencrypt/3.3.2/jsencrypt.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/select2/4.0.13/js/select2.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap-table/1.22.1/bootstrap-table.min.js"></script>
+    <!-- 引入 MQTT.js CDN -->
+    <script src="https://cdn.bootcss.com/paho-mqtt/1.1.0/paho-mqtt.min.js"></script>
+
+    <style>
+
+        body,head,h1,h2,h3,h4,h5{
+            padding: 0;
+            margin: 0;
+        }
+
+        .datetimepicker-container {
+            position: relative;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="toast_container" style="width: 50%;position: absolute;top: 0;left: 50%;z-index: 5555;"></div>
+
+    <div id="login_pannel" class="login_pannel container" >
+        <div style="text-align: center;margin-top: 2rem;">
+            <h5 id="disPalyTitle" style="color: #ee130b;"></h5>
+            <H2 style="color: #0b75ee;">WOX协作平台</H2> 
+            <h5 id="h_Version" style="color: #ee400b;"></h5>
+        </div>
+        <form class="row g-3 was-validated" onsubmit="return false">
+            <div class="col-md-12">
+              <label for="AppConfigInputbox" class="form-label">请输入管理员分配的配置参数</label>
+              <textarea rows="3" class="form-control is-invalid" id="AppConfigInputbox" value="" required></textarea>
+              <div class="valid-feedback">
+                已输入
+              </div>
+            </div>
+            <div class="col-12" style="text-align: center;">
+                <button class="btn btn-primary"  onclick="SaveConfig()">保存配置</button>
+            </div>
+        </form>
+    </div>
+    
+    </div>
+    <script>
+        // 定义全局变量
+
+        function showModelDialog(text,imgIndex){
+            let img= document.getElementById("model_image")
+            img.src=images[imgIndex==undefined?0:imgIndex]
+            document.getElementById('model_text').innerText=text
+            $(molde_dialog_win).modal("show");
+        }
+
+        function hideModelDialog(){
+            $(molde_dialog_win).modal("hide");
+        }
+
+        function showAlert(type,message) {
+                var cl ='alert-primary'
+                if(type=='success')
+                    cl ='alert-success'
+                else if(type=='warn')
+                    cl ='alert-warning'
+                else if(type=='info')
+                    cl ='alert-info'  
+                else if(type=='error')
+                    cl ='alert-danger'
+                $('#alert_message').text(message)
+                $('#alert_window').removeClass('alert-success alert-primary alert-warning alert-info alert-danger')
+                $('#alert_window').addClass(cl)
+                $('#alert_window').css('display','block');
+            }
+            
+        function hideAlert() {
+            $('#alert_window').css('display','none');
+        }
+
+
+        function showToast(message,type) {
+            var theme ='bg-primary'
+            if(type=='success')
+                theme ='bg-success'
+            else if(type=='warn')
+                theme ='bg-warning'
+            else if(type=='info')
+                theme ='bg-info'  
+            else if(type=='error')
+                theme ='bg-danger'   
+            var toastEl = document.createElement('div');
+            toastEl.classList.add('toast', 'align-items-center', 'text-white', theme, 'border-0');
+            toastEl.setAttribute('role', 'alert');
+            toastEl.setAttribute('aria-live', 'assertive');
+            toastEl.setAttribute('aria-atomic', 'true');
+            toastEl.setAttribute('delay',2000);
+            toastEl.innerHTML = '<div class="d-flex" style="margin:5px;"><div class="toast-body">'+message+'</div></div>';
+        
+            var toast = new bootstrap.Toast(toastEl);
+            toastEl.addEventListener('hide.bs.toast', function () {
+                // 删除元素
+                toastEl.remove()
+            })
+            toast.show();
+        
+            $('#toast_container').append(toastEl);
+        }
+
+        function enterFullScreen() {
+            var element = document.documentElement;
+            if (element.requestFullscreen) {
+            element.requestFullscreen();
+            } else if (element.webkitRequestFullscreen) {
+            element.webkitRequestFullscreen();
+            } else if (element.mozRequestFullScreen) {
+            element.mozRequestFullScreen();
+            } else if (element.msRequestFullscreen) {
+            element.msRequestFullscreen();
+            }
+        }
+
+        function SaveConfig(){
+            showToast('保存成功','success')
+        }
+       
+
+    </script>
+</body>
+</html>
